@@ -14,6 +14,7 @@ const faStyle = {
 const OutcomeCardFooterButton = (props) => {
   const {
     icon,
+    onBlur,
     onClick,
     onMouseEnter,
     styles
@@ -23,6 +24,10 @@ const OutcomeCardFooterButton = (props) => {
     styles.cardFooterButton
   );
 
+  const handleOnBlur = (e) => {
+    if (onBlur) onBlur(e);
+  };
+
   const handleOnClick = (e) => {
     if (onClick) onClick(e);
   };
@@ -30,6 +35,7 @@ const OutcomeCardFooterButton = (props) => {
   return (
     <button
       className={buttonStyles}
+      onBlur={handleOnBlur}
       onClick={handleOnClick}
       onMouseEnter={onMouseEnter}
       type="button"
@@ -42,6 +48,7 @@ const OutcomeCardFooterButton = (props) => {
 OutcomeCardFooterButton.propTypes = {
   icon: PropTypes.string,
   onClick: PropTypes.func,
+  onBlur: PropTypes.func,
   onMouseEnter: PropTypes.func,
   styles: PropTypes.object
 };

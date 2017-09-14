@@ -181,6 +181,9 @@ export default class AsyncMenuContainer extends Component {
           onClick(e);
         }
       },
+      onBlur: (e) => {
+        console.log('smartToggle onBlur');
+      },
       onMouseEnter: this.ensureMod
     });
   }
