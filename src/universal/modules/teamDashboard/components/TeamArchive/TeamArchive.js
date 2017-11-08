@@ -7,6 +7,7 @@ import {CellMeasurer, CellMeasurerCache, Grid, InfiniteLoader, WindowScroller} f
 import OutcomeOrNullCard from 'universal/components/OutcomeOrNullCard/OutcomeOrNullCard';
 import Helmet from 'universal/components/ParabolHelmet/ParabolHelmet';
 import TeamArchiveHeader from 'universal/modules/teamDashboard/components/TeamArchiveHeader/TeamArchiveHeader';
+import {CARD_WIDTH, GRID_PADDING, NAV_WIDTH} from 'universal/modules/teamDashboard/constants';
 import TeamArchiveSqueezeRoot from 'universal/modules/teamDashboard/containers/TeamArchiveSqueezeRoot';
 import getRallyLink from 'universal/modules/userDashboard/helpers/getRallyLink';
 import {ib} from 'universal/styles/helpers';
@@ -21,10 +22,6 @@ const iconStyle = {
   fontSize: ui.iconSize,
   marginRight: '.25rem'
 };
-
-const CARD_WIDTH = 256;
-const GRID_PADDING = 16;
-const NAV_WIDTH = parseInt(ui.dashSidebarWidth, 10) * 16;
 
 const getColumnCount = () => {
   if (typeof window === 'undefined') return 4;

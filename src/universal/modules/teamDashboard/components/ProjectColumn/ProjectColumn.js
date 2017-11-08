@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {DropTarget as dropTarget} from 'react-dnd';
 import FontAwesome from 'react-fontawesome';
+import {CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
 import shortid from 'shortid';
 import AddProjectButton from 'universal/components/AddProjectButton/AddProjectButton';
 import Badge from 'universal/components/Badge/Badge';
@@ -12,6 +13,7 @@ import handleColumnHover from 'universal/dnd/handleColumnHover';
 import handleDrop from 'universal/dnd/handleDrop';
 import withDragState from 'universal/dnd/withDragState';
 import {Menu, MenuItem} from 'universal/modules/menu';
+import {CARD_WIDTH} from 'universal/modules/teamDashboard/constants';
 import CreateProjectMutation from 'universal/mutations/CreateProjectMutation';
 import {overflowTouch} from 'universal/styles/helpers';
 import projectStatusStyles from 'universal/styles/helpers/projectStatusStyles';
@@ -59,6 +61,12 @@ const handleAddProjectFactory = (atmosphere, dispatch, history, status, teamMemb
 };
 
 class ProjectColumn extends Component {
+  cellCache = new CellMeasurerCache({
+    defaultHeight: 180,
+    minHeight: 106,
+    fixedWidth: true
+  });
+
   makeAddProject = () => {
     const {
       area,
@@ -131,17 +139,42 @@ class ProjectColumn extends Component {
     }));
   };
 
+  projectCardRowRenderer = ({index, key, parent, rowIndex, style}) => {
+    const {area, dragState, projects, userId} = this.props;
+    const project = projects[index];
+    return (
+      <CellMeasurer
+        cache={this.cellCache}
+        columnIndex={0}
+        parent={parent}
+        rowIndex={rowIndex}
+      >
+        <div key={key} style={style}>
+          <ProjectCardContainer
+            area={area}
+            project={project}
+            dragState={dragState}
+            myUserId={userId}
+            ref={(c) => {
+              if (c) {
+                dragState.components.push(c);
+              }
+            }}
+          />
+        </div>
+      </CellMeasurer>
+    );
+  };
+
   render() {
     const {
-      area,
       connectDropTarget,
       dragState,
       firstColumn,
       lastColumn,
       status,
       projects,
-      styles,
-      userId
+      styles
     } = this.props;
     const label = themeLabels.projectStatus[status].slug;
     const columnStyles = css(
@@ -151,7 +184,7 @@ class ProjectColumn extends Component {
     );
 
     // reset every rerender so we make sure we got the freshest info
-    dragState.clear();
+    console.log(dragState);
     return connectDropTarget(
       <div className={columnStyles}>
         <div className={css(styles.columnHeader)}>
@@ -172,7 +205,21 @@ class ProjectColumn extends Component {
         </div>
         <div className={css(styles.columnBody)}>
           <div className={css(styles.columnInner)}>
-            {projects.map((project) =>
+            <WindowScroller>
+              {({height, isScrolling, onChildScroll}) => (
+                <List
+                  autoHeight
+                  height={height}
+                  width={CARD_WIDTH}
+                  isScrolling={isScrolling}
+                  onScoll={onChildScroll}
+                  rowCount={projects.length}
+                  rowHeight={this.cellCache.rowHeight}
+                  rowRenderer={this.projectCardRowRenderer}
+                />
+              )}
+            </WindowScroller>
+            {/*projects.map((project) =>
               (<ProjectCardContainer
                 key={`teamCard${project.id}`}
                 area={area}
@@ -185,14 +232,13 @@ class ProjectColumn extends Component {
                   }
                 }}
               />))
-            }
+            */}
           </div>
         </div>
       </div>
     );
   }
 }
-
 
 ProjectColumn.propTypes = {
   area: PropTypes.string,
