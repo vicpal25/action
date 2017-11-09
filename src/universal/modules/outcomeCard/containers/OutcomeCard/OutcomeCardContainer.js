@@ -1,6 +1,6 @@
 import {cashay} from 'cashay';
 import {convertToRaw, EditorState} from 'draft-js';
-import {Set} from 'immutable';
+import {Set as ImmutableSet} from 'immutable';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
@@ -40,7 +40,7 @@ class OutcomeCardContainer extends Component {
     super(props);
     const {contentState} = props;
     this.state = {
-      activeEditingComponents: Set(),
+      activeEditingComponents: ImmutableSet(),
       cardHasHover: false,
       cardHasFocus: false,
       editorState: EditorState.createWithContent(contentState, editorDecorators),
@@ -91,6 +91,7 @@ class OutcomeCardContainer extends Component {
     this.setState({
       editorState
     });
+    this.props.onEdit(editorState);
   };
 
   setEditorRef = (c) => {
@@ -204,15 +205,16 @@ OutcomeCardContainer.propTypes = {
   area: PropTypes.string,
   contentState: PropTypes.object.isRequired,
   handleAddProject: PropTypes.func,
+  hasDragStyles: PropTypes.bool,
+  isAgenda: PropTypes.bool,
+  isDragging: PropTypes.bool,
+  onEdit: PropTypes.func,
   outcome: PropTypes.shape({
     id: PropTypes.string,
     content: PropTypes.string,
     status: PropTypes.oneOf(labels.projectStatus.slugs),
     teamMemberId: PropTypes.string
   }),
-  hasDragStyles: PropTypes.bool,
-  isAgenda: PropTypes.bool,
-  isDragging: PropTypes.bool,
   teamMembers: PropTypes.array
 };
 

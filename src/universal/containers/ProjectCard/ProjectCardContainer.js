@@ -21,6 +21,25 @@ const projectSource = {
 const importantProps = ['content', 'status', 'teamMemberId', 'sortOrder', 'integration'];
 
 class ProjectCardContainer extends Component {
+  static propTypes = {
+    area: PropTypes.string,
+    connectDragSource: PropTypes.func,
+    connectDragPreview: PropTypes.func,
+    dispatch: PropTypes.func,
+    isDragging: PropTypes.bool,
+    isPreview: PropTypes.bool,
+    myUserId: PropTypes.string,
+    preferredName: PropTypes.string,
+    username: PropTypes.string,
+    project: PropTypes.shape({
+      id: PropTypes.string,
+      content: PropTypes.string,
+      status: PropTypes.string,
+      teamMemberId: PropTypes.string
+    }),
+    onEdit: PropTypes.func
+  };
+
   componentDidMount() {
     const {connectDragPreview, isPreview} = this.props;
     if (!isPreview) {
@@ -40,7 +59,7 @@ class ProjectCardContainer extends Component {
   }
 
   render() {
-    const {area, connectDragSource, isDragging, myUserId, project} = this.props;
+    const {area, connectDragSource, isDragging, myUserId, onEdit, project} = this.props;
     return connectDragSource(
       <div>
         {isDragging &&
@@ -55,31 +74,13 @@ class ProjectCardContainer extends Component {
             outcome={project}
             myUserId={myUserId}
             isDragging={isDragging}
+            onEdit={onEdit}
           />
         </div>
       </div>
     );
   }
 }
-
-
-ProjectCardContainer.propTypes = {
-  area: PropTypes.string,
-  connectDragSource: PropTypes.func,
-  connectDragPreview: PropTypes.func,
-  dispatch: PropTypes.func,
-  isDragging: PropTypes.bool,
-  isPreview: PropTypes.bool,
-  myUserId: PropTypes.string,
-  preferredName: PropTypes.string,
-  username: PropTypes.string,
-  project: PropTypes.shape({
-    id: PropTypes.string,
-    content: PropTypes.string,
-    status: PropTypes.string,
-    teamMemberId: PropTypes.string
-  })
-};
 
 const dragSourceCb = (connectSource, monitor) => ({
   connectDragSource: connectSource.dragSource(),

@@ -12,6 +12,7 @@ export default class OutcomeOrNullCard extends Component {
     isAgenda: PropTypes.bool,
     isDragging: PropTypes.bool,
     myUserId: PropTypes.string,
+    onEdit: PropTypes.func,
     outcome: PropTypes.object
   };
 
@@ -35,7 +36,7 @@ export default class OutcomeOrNullCard extends Component {
   }
 
   render() {
-    const {area, handleAddProject, hasDragStyles, isAgenda, myUserId, outcome, isDragging} = this.props;
+    const {area, handleAddProject, hasDragStyles, isAgenda, myUserId, onEdit, outcome, isDragging} = this.props;
     const {contentState} = this.state;
     const {createdBy, teamMember: {preferredName}} = outcome;
     const showOutcome = contentState.hasText() || createdBy === myUserId;
@@ -48,6 +49,7 @@ export default class OutcomeOrNullCard extends Component {
         isDragging={isDragging}
         isAgenda={isAgenda}
         outcome={outcome}
+        onEdit={onEdit}
         myUserId={myUserId}
       /> :
       <NullCard preferredName={preferredName} />;

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {DropTarget as dropTarget} from 'react-dnd';
 import FontAwesome from 'react-fontawesome';
-import {CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
+import {AutoSizer, CellMeasurer, CellMeasurerCache, List} from 'react-virtualized';
 import shortid from 'shortid';
 import AddProjectButton from 'universal/components/AddProjectButton/AddProjectButton';
 import Badge from 'universal/components/Badge/Badge';
@@ -13,7 +13,6 @@ import handleColumnHover from 'universal/dnd/handleColumnHover';
 import handleDrop from 'universal/dnd/handleDrop';
 import withDragState from 'universal/dnd/withDragState';
 import {Menu, MenuItem} from 'universal/modules/menu';
-import {CARD_WIDTH} from 'universal/modules/teamDashboard/constants';
 import CreateProjectMutation from 'universal/mutations/CreateProjectMutation';
 import {overflowTouch} from 'universal/styles/helpers';
 import projectStatusStyles from 'universal/styles/helpers/projectStatusStyles';
@@ -24,6 +23,7 @@ import withStyles from 'universal/styles/withStyles';
 import {PROJECT, TEAM_DASH, USER_DASH} from 'universal/utils/constants';
 import dndNoise from 'universal/utils/dndNoise';
 import getNextSortOrder from 'universal/utils/getNextSortOrder';
+import isUndefined from 'universal/utils/isUndefined';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router';
 
@@ -61,10 +61,17 @@ const handleAddProjectFactory = (atmosphere, dispatch, history, status, teamMemb
 };
 
 class ProjectColumn extends Component {
+  state = {
+    editingCounter: 0
+  };
+
+  componentWillUpdate(nextProps) {
+    this.updateCellCache(this.props.projects, nextProps.projects);
+  }
+
   cellCache = new CellMeasurerCache({
-    defaultHeight: 180,
-    minHeight: 106,
-    fixedWidth: true
+    fixedWidth: true,
+    defaultHeight: 150
   });
 
   makeAddProject = () => {
@@ -139,17 +146,18 @@ class ProjectColumn extends Component {
     }));
   };
 
-  projectCardRowRenderer = ({index, key, parent, rowIndex, style}) => {
+  projectCardRowRenderer = ({index, key, parent, style}) => {
     const {area, dragState, projects, userId} = this.props;
-    const project = projects[index];
+    const project = projects[index % projects.length];
     return (
       <CellMeasurer
         cache={this.cellCache}
         columnIndex={0}
+        key={key}
+        rowIndex={index}
         parent={parent}
-        rowIndex={rowIndex}
       >
-        <div key={key} style={style}>
+        <div style={style}>
           <ProjectCardContainer
             area={area}
             project={project}
@@ -160,16 +168,28 @@ class ProjectColumn extends Component {
                 dragState.components.push(c);
               }
             }}
+            onEdit={() => {
+              this.cellCache.clear(index);
+              this.setState(({editingCounter}) => ({editingCounter: editingCounter + 1}));
+            }}
           />
         </div>
       </CellMeasurer>
     );
   };
 
+  updateCellCache = (currentProjects, nextProjects) => {
+    const maxLength = Math.max(currentProjects.length, nextProjects.length);
+    for (let i = 0; i < maxLength; i++) {
+      if (isUndefined(currentProjects[i]) || isUndefined(nextProjects[i]) || currentProjects[i].content !== nextProjects[i].content) {
+        this.cellCache.clear(i);
+      }
+    }
+  };
+
   render() {
     const {
       connectDropTarget,
-      dragState,
       firstColumn,
       lastColumn,
       status,
@@ -184,7 +204,6 @@ class ProjectColumn extends Component {
     );
 
     // reset every rerender so we make sure we got the freshest info
-    console.log(dragState);
     return connectDropTarget(
       <div className={columnStyles}>
         <div className={css(styles.columnHeader)}>
@@ -205,34 +224,21 @@ class ProjectColumn extends Component {
         </div>
         <div className={css(styles.columnBody)}>
           <div className={css(styles.columnInner)}>
-            <WindowScroller>
-              {({height, isScrolling, onChildScroll}) => (
+            <AutoSizer>
+              {({height, width}) => (
                 <List
-                  autoHeight
+                  aria-readonly={false}
+                  deferredMeasurementCache={this.cellCache}
                   height={height}
-                  width={CARD_WIDTH}
-                  isScrolling={isScrolling}
-                  onScoll={onChildScroll}
+                  width={width}
                   rowCount={projects.length}
                   rowHeight={this.cellCache.rowHeight}
                   rowRenderer={this.projectCardRowRenderer}
+                  projects={projects} // forces updates when `projects` changes, since `List` is a PureComponent
+                  cellToReRender={this.state.editingCounter} // forces update when a cell's size changes but `projects` does not
                 />
               )}
-            </WindowScroller>
-            {/*projects.map((project) =>
-              (<ProjectCardContainer
-                key={`teamCard${project.id}`}
-                area={area}
-                project={project}
-                dragState={dragState}
-                myUserId={userId}
-                ref={(c) => {
-                  if (c) {
-                    dragState.components.push(c);
-                  }
-                }}
-              />))
-            */}
+            </AutoSizer>
           </div>
         </div>
       </div>
