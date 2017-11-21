@@ -25,6 +25,8 @@ export const addNotificationUpdater = (store, viewerId, newNode) => {
     'SocketRoute_notifications'
   );
   const nodeId = newNode.getValue('id');
+  console.log('addNotificationHandler~nodeId');
+  console.log(nodeId);
   const matchingNodes = filterNodesInConn(conn, (node) => node.getValue('id') === nodeId);
   if (conn && matchingNodes.length === 0) {
     const newEdge = ConnectionHandler.createEdge(
@@ -169,6 +171,8 @@ const notificationHandler = {
     addNotificationUpdater(store, viewerId, payload);
   },
   [PROJECT_INVOLVES]: (payload, {dispatch, history, environment, store}) => {
+    console.log('notificationHandler~PROJECT_INVOLVES');
+    console.log(payload);
     const {viewerId} = environment;
     addNotificationUpdater(store, viewerId, payload);
     const inMeeting = Boolean(matchPath(location.pathname, {
@@ -177,6 +181,7 @@ const notificationHandler = {
       strict: false
     }));
     if (inMeeting) {
+      // don't display toast if in a meeting
       return;
     }
     const involvement = payload.getValue('involvement');

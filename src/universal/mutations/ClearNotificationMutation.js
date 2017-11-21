@@ -15,9 +15,13 @@ export const clearNotificationUpdater = (viewer, deletedLocalIds) => {
     viewer,
     'SocketRoute_notifications'
   );
+  console.log('moe');
   if (conn) {
+    console.log('larry');
+    console.log(deletedLocalIds);
     const deletedGlobalIds = deletedLocalIds.map((id) => toGlobalId('Notification', id));
     deletedGlobalIds.forEach((globalId) => {
+      console.log('curly');
       ConnectionHandler.deleteNode(conn, globalId);
     });
   }
