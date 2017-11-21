@@ -33,10 +33,11 @@ const ClearNotificationMutation = (environment, dbNotificationId, onError, onCom
       const deletedId = store.getRootField('clearNotification').getValue('deletedId');
       clearNotificationUpdater(viewer, [deletedId]);
     },
-    optimisticUpdater: (store) => {
-      const viewer = store.get(viewerId);
-      clearNotificationUpdater(viewer, [dbNotificationId]);
-    },
+    optimisticResponse: { clearNotification: { deletedId: dbNotificationId } },
+    // optimisticUpdater: (store) => {
+    //   const viewer = store.get(viewerId);
+    //   clearNotificationUpdater(viewer, [dbNotificationId]);
+    // },
     onCompleted,
     onError
   });

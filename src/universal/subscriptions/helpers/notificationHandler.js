@@ -169,6 +169,8 @@ const notificationHandler = {
     addNotificationUpdater(store, viewerId, payload);
   },
   [PROJECT_INVOLVES]: (payload, {dispatch, history, environment, store}) => {
+    const {viewerId} = environment;
+    addNotificationUpdater(store, viewerId, payload);
     const inMeeting = Boolean(matchPath(location.pathname, {
       path: '/meeting',
       exact: false,
@@ -177,7 +179,6 @@ const notificationHandler = {
     if (inMeeting) {
       return;
     }
-    const {viewerId} = environment;
     const involvement = payload.getValue('involvement');
     const changeAuthorName = payload.getLinkedRecord('changeAuthor').getValue('preferredName');
     const wording = involvement === MENTIONEE ? 'mentioned you in' : 'assigned you to';
@@ -193,7 +194,6 @@ const notificationHandler = {
         }
       }
     }));
-    addNotificationUpdater(store, viewerId, payload);
   },
   [PROMOTE_TO_BILLING_LEADER]: (payload, {dispatch, history, environment, store}) => {
     const {viewerId} = environment;

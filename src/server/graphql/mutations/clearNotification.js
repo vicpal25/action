@@ -28,6 +28,7 @@ export default {
     const notificationsCleared = {
       deletedIds: [dbNotificationId]
     };
+    console.log('publishing clear notification');
     getPubSub().publish(`${NOTIFICATIONS_CLEARED}.${userId}`, {notificationsCleared, mutatorId: socket.id});
     return {deletedId: dbNotificationId};
   }

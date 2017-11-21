@@ -31,9 +31,11 @@ const Notifications = (props) => {
   const clearableNotifs = notifications.edges.filter(({node}) => !requiresAction(node));
   const clearAllNotifications = () => {
     submitMutation();
-    clearableNotifs.forEach(({node}) => {
-      ClearNotificationMutation(atmosphere, fromGlobalId(node.id).id, onError, onCompleted);
-    });
+    return Promise.all(
+      clearableNotifs.map(({node}) =>
+        ClearNotificationMutation(atmosphere, fromGlobalId(node.id).id, onError, onCompleted)
+      )
+    );
   };
 
   const clearAllButton = () => (
