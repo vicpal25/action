@@ -4,6 +4,8 @@
  * Defines the js-land type of a Notification, and functions to operate on them.
  */
 
+import type {OrgID} from './organization';
+
 import {
   ADD_TO_TEAM,
   DENY_NEW_USER,
@@ -17,9 +19,11 @@ import {
   TEAM_INVITE
 } from '../utils/constants';
 
-type Notification = {
-  id: string,
-  orgId: string,
+export type NotificationID = string;
+
+export type Notification = {
+  id: NotificationID,
+  orgId: OrgID,
   startAt: Date,
   teamId?: string,
   type:

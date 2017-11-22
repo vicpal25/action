@@ -8,6 +8,8 @@ import user from './models/User/userQuery';
 import {toGlobalId} from 'graphql-relay';
 import User from 'server/graphql/types/User';
 
+import team from './queries/team';
+
 export default new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
@@ -21,6 +23,7 @@ export default new GraphQLObjectType({
     ...agenda,
     ...meeting,
     ...organization,
+    team,
     ...teamMember,
     ...user
   })

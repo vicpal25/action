@@ -1,8 +1,18 @@
+// @flow
+
+import type {Context} from '../httpGraphQLHandler';
+import type {AuthToken} from '../../../universal/data/auth';
+import type {TeamID} from '../../../universal/data/team';
+
 import {GraphQLID, GraphQLNonNull} from 'graphql';
-import getRethink from 'server/database/rethinkDriver';
-import {requireSUOrTeamMember} from 'server/utils/authorization';
-import {errorObj} from 'server/utils/utils';
+import getRethink from '../../database/rethinkDriver';
+import {requireSUOrTeamMember} from '../../utils/authorization';
+import {errorObj} from '../../utils/utils';
 import {Team} from '../models/Team/teamSchema';
+
+type args = {
+  teamId: TeamID
+};
 
 export default {
   type: Team,
@@ -13,7 +23,7 @@ export default {
       description: 'The team ID for the desired team'
     }
   },
-  async resolve(source, {teamId}, {authToken}) {
+  async resolve(source: mixed, {teamId}: args, {authToken}: Context) {
     const r = getRethink();
     requireSUOrTeamMember(authToken, teamId);
     const team = await r.table('Team').get(teamId);
