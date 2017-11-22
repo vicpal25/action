@@ -9,6 +9,7 @@ const makeSubscribeIter = (channelName, options = {}) => {
   const getNextPromise = async () => {
     const nextRes = await asyncIterator.next();
     const {value, done} = nextRes;
+    console.log('next redis from message:', nextRes);
     if (done) {
       return asyncIterator.return();
     }
