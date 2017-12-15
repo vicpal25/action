@@ -1,0 +1,58 @@
+plan
+- for a mention/notification, always publsh the notification
+  - look at `createProject` GraphQL mutation
+- on the front-end, when in a meeting, don't pop a toast for mention/notifications
+  - implement this using a blocklist or an allowlist
+
+what I see:
+- sometimes not receiving notifications in my inbox which were fired during the meeting
+- when they are fired during the meeting, clicking the "clear" button has no effect until I refresh the page
+- at the end of a meeting, if we did a mention during the agenda phase, we'll get the notification,
+  however, clearing the notification DOES NOT UPDATE THE FRONT-END
+- <empty-string> has assigned you a project for <team>
+
+facts:
+  - when we first load the page and initially render the dashboard, we hit the notifications graphql query
+    by way of the DashboardWrapper
+  - when we direct back to the dashboard from a meeting we do not hit the notifications graphql query
+  - we are providing a "ttl" of 5 minutes to the QueryRenderer, whatever that means
+    - NEED TO CONFIRM: this possibly means that we don't re-fetch on re-render for 5 minutes
+  - when we clear a notification from the client, the server receives the correct ID
+  - when we clear a notification from the client, the ID used in the optimistic and actual updater are correct
+  - the relay connection *does* have nodes with the IDs we're trying to clear
+  - the relay store is cached on the Atmosphere object, which is stored at the root of the application tree
+  - the DashboardWrapper gets rerendered when you're on the dashboard and you get a new notification (subscription)
+
+hypotheses:
+  x the notification is never fired
+    > actually, it is delivered down the websocket
+  x the notification page/badge is not properly subscribed
+    > the subscription callback is getting called, and records are getting inserted properly into the store  - the QueryRenderer for the dashboard which feeds notifications down through
+    the tree is not the same as the QueryRenderer for the meeting, hence the
+    store may not be shared. when we link back to the dashboard, upon that initial render,
+    we are reaching into a stale other store
+  x when we clear a notification from the client, the IDs we use in the optimistic update / actual update are incorrect.
+  x when we ask for a connection after the meeting, there is none
+  x when we try to remove a node from the connection, the connection just doesn't have that node
+  x our calls to imperatively mutating the store are using notification IDs that the store does not share
+  x the store that we are mutating is not the store that is managed by the QueryRenderer
+  ? would this all work if we just used the real <QueryRenderer />
+  ? the updated store is not making its way back to the render method
+  ? our calls to imperatively mutating the store are not reaching the store
+
+problems:
+  - can't debug relay!
+    - normally would use relay devtools for this, but both electron app and in-browser version are borked
+      - perhaps this has to do with the combo of hand-rolled "atmosphere" and hand-rolled QueryRenderer
+
+meta:
+  - the goal of this process is to determine the root cause of a user-facing problem
+  - process is basically the scientific method:
+    - craft a hypotheses based on facts & hunch
+    - test the hypothesis
+    - gather facts
+    - (repeat)
+  - note that facts can combine to form new facts
+    - e.g. if we know p -> q, q -> r, and find out that p is true, we know that r is true
+    - this is basic boolean logic
+    - we can totally automate this

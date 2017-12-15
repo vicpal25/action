@@ -23,6 +23,8 @@ const initialState = {};
 
   // Relay store
   const atmosphere = new Atmosphere();
+  window.atmosphere = atmosphere;
+  window.dumpStore = () => window.atmosphere.getStore().getSource().toJSON();
 
   if (__PRODUCTION__) {
     StyleSheet.rehydrate(window.__APHRODITE__);

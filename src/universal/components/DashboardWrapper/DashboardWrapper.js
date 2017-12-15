@@ -43,18 +43,20 @@ const subscriptions = [
 const DashboardWrapper = ({atmosphere, dispatch, history, location}) => {
   return (
     <QueryRenderer
-      cacheConfig={cacheConfig}
+      // cacheConfig={cacheConfig}
       environment={atmosphere}
       query={query}
       variables={{}}
       subParams={{dispatch, history, location}}
       subscriptions={subscriptions}
       render={({props: renderProps}) => {
-        const notifications = (renderProps && renderProps.viewer) ?
-          renderProps.viewer.notifications : undefined;
+        console.log('re-rendering the DashboardWrapper');
+        const notifications = (renderProps && renderProps.viewer)
+          ? renderProps.viewer.notifications
+          : undefined;
         const notificationsCount = notifications && notifications.edges ? notifications.edges.length : 0;
         return (
-          <DashLayoutContainer notifications={notifications}>
+          <DashLayoutContainer>
             <DashSidebar notificationsCount={notificationsCount} />
             <AsyncRoute isAbstract path="/me" mod={userDashboard} extraProps={{notifications}} />
             <AsyncRoute isAbstract path="/team/:teamId" mod={teamRoot} extraProps={{notifications}} />

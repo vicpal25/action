@@ -15,6 +15,8 @@ export default {
     // AUTH
     const userId = getUserId(authToken);
 
+    console.log(`notifications queried for user '${userId}'`);
+
     // RESOLUTION
     // TODO consider moving the requestedFields to all queries
     const nodes = await r.table('Notification')

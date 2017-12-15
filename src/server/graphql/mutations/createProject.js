@@ -1,3 +1,10 @@
+// @flow
+import type {Notification} from 'universal/types/notification';
+import type {CreateProjectInputT} from 'server/graphql/types/CreateProjectInput';
+import type {AreaEnumT} from 'server/graphql/types/AreaEnum';
+import type {CreateProjectPayloadT} from 'server/graphql/types/CreateProjectPayload';
+import type {GraphQLContext} from 'server/types/graphQLContext';
+
 import {GraphQLNonNull} from 'graphql';
 import getRethink from 'server/database/rethinkDriver';
 import AreaEnum from 'server/graphql/types/AreaEnum';
@@ -7,17 +14,26 @@ import {getUserId, requireTeamMember} from 'server/utils/authorization';
 import getPubSub from 'server/utils/getPubSub';
 import {handleSchemaErrors} from 'server/utils/utils';
 import shortid from 'shortid';
+import {projectInvolvesNotification} from 'universal/types/notification';
+import {teamMemberId} from 'universal/types/teamMember';
 import {
   ASSIGNEE,
   MEETING,
   MENTIONEE,
   NOTIFICATIONS_ADDED,
   PROJECT_CREATED,
-  PROJECT_INVOLVES
+  PROJECT_INVOLVES,
+  TEAM_DASH,
+  USER_DASH
 } from 'universal/utils/constants';
 import getTagsFromEntityMap from 'universal/utils/draftjs/getTagsFromEntityMap';
 import getTypeFromEntityMap from 'universal/utils/draftjs/getTypeFromEntityMap';
 import makeProjectSchema from 'universal/validation/makeProjectSchema';
+
+type Args = {
+  area: AreaEnumT,
+  newProject: CreateProjectInputT
+};
 
 export default {
   type: CreateProjectPayload,
@@ -32,7 +48,11 @@ export default {
       description: 'The part of the site where the creation occurred'
     }
   },
-  async resolve(source, {newProject, area}, {authToken, dataLoader, socketId}) {
+  async resolve<Source>(
+    source: Source,
+    {newProject, area}: Args,
+    {authToken, dataLoader, socketId}: GraphQLContext
+  ): Promise<CreateProjectPayloadT> {
     const r = getRethink();
     const operationId = dataLoader.share();
     const now = new Date();
@@ -42,7 +62,7 @@ export default {
 
     // VALIDATION
     const schema = makeProjectSchema();
-    const {errors, data: validNewProject} = schema({content: 1, ...newProject});
+    const {errors, data: validNewProject} = schema({content: '1', ...newProject});
     handleSchemaErrors(errors);
     const {teamId, userId, content} = validNewProject;
     requireTeamMember(authToken, teamId);
@@ -60,7 +80,7 @@ export default {
       status: validNewProject.status,
       tags: getTagsFromEntityMap(entityMap),
       teamId,
-      teamMemberId: `${userId}::${teamId}`,
+      teamMemberId: teamMemberId(userId, teamId),
       updatedAt: now,
       userId
     };
@@ -72,15 +92,9 @@ export default {
       teamMemberId: project.teamMemberId,
       updatedAt: project.updatedAt
     };
-    const {usersToIgnore} = await r({
+    await r({
       project: r.table('Project').insert(project),
-      history: r.table('ProjectHistory').insert(history),
-      usersToIgnore: area === MEETING ? await r.table('TeamMember')
-        .getAll(teamId, {index: 'teamId'})
-        .filter({
-          isCheckedIn: true
-        })('userId')
-        .coerceTo('array') : []
+      history: r.table('ProjectHistory').insert(history)
     });
     const projectCreated = {project};
 
@@ -89,38 +103,39 @@ export default {
 
     // Handle notifications
     // Almost always you start out with a blank card assigned to you (except for filtered team dash)
-    const changeAuthorId = `${myUserId}::${teamId}`;
-    const notificationsToAdd = [];
-    if (changeAuthorId !== project.teamMemberId && !usersToIgnore.includes(project.userId)) {
-      notificationsToAdd.push({
-        id: shortid.generate(),
-        startAt: now,
-        type: PROJECT_INVOLVES,
-        userIds: [userId],
-        involvement: ASSIGNEE,
-        projectId: project.id,
-        changeAuthorId,
-        teamId
-      });
-    }
-
-    getTypeFromEntityMap('MENTION', entityMap)
-      .filter((mention) => mention !== myUserId && mention !== project.userId && !usersToIgnore.includes(mention))
-      .forEach((mentioneeUserId) => {
-        notificationsToAdd.push({
-          id: shortid.generate(),
-          startAt: now,
-          type: PROJECT_INVOLVES,
-          userIds: [mentioneeUserId],
-          involvement: MENTIONEE,
-          projectId: project.id,
+    const changeAuthorId = teamMemberId(myUserId, teamId);
+    const notificationsToAdd: Array<Notification> = [];
+    // if we did not self-assign, queue up an assignment notification
+    if (changeAuthorId !== project.teamMemberId) {
+      notificationsToAdd.push(
+        projectInvolvesNotification({
           changeAuthorId,
-          teamId
-        });
+          involvement: ASSIGNEE,
+          projectId: project.id,
+          startAt: now,
+          teamId,
+          userIds: [userId]
+        })
+      );
+    }
+    // queue up all mention notifications
+    getTypeFromEntityMap('MENTION', entityMap)
+      .filter((mention) => mention !== myUserId && mention !== project.userId)
+      .forEach((mentioneeUserId) => {
+        notificationsToAdd.push(
+          projectInvolvesNotification({
+            changeAuthorId,
+            involvement: MENTIONEE,
+            projectId: project.id,
+            startAt: now,
+            teamId,
+            userIds: [mentioneeUserId]
+          })
+        );
       });
     if (notificationsToAdd.length) {
       await r.table('Notification').insert(notificationsToAdd);
-      notificationsToAdd.forEach((notification) => {
+      notificationsToAdd.forEach((notification: Notification) => {
         const notificationsAdded = {notifications: [notification]};
         const notificationUserId = notification.userIds[0];
         getPubSub().publish(`${NOTIFICATIONS_ADDED}.${notificationUserId}`, {notificationsAdded});

@@ -10,6 +10,9 @@ import type {UserID} from './user';
 
 export type TeamMemberID = string;
 
+export const teamMemberId = (userId: UserID, teamId: TeamID) =>
+  `${userId}::${teamId}`;
+
 export const getUserId = (tmId: TeamMemberID): UserID =>
   tmId.split('::')[0];
 

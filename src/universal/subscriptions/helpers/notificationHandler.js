@@ -29,21 +29,24 @@ import filterNodesInConn from 'universal/utils/relay/filterNodesInConn';
 
 export const addNotificationUpdater = (store, viewerId, newNode) => {
   const viewer = store.get(viewerId);
-  const conn = ConnectionHandler.getConnection(
+  const notificationsConn = ConnectionHandler.getConnection(
     viewer,
     'DashboardWrapper_notifications'
   );
+  if (!notificationsConn) {
+    return;
+  }
   const nodeId = newNode.getValue('id');
-  const matchingNodes = filterNodesInConn(conn, (node) => node.getValue('id') === nodeId);
-  if (conn && matchingNodes.length === 0) {
+  const matchingNodes = filterNodesInConn(notificationsConn, (node) => node.getValue('id') === nodeId);
+  if (notificationsConn && matchingNodes.length === 0) {
     const newEdge = ConnectionHandler.createEdge(
       store,
-      conn,
+      notificationsConn,
       newNode,
       'NotificationEdge'
     );
     newEdge.setValue(newNode.getValue('startAt'), 'cursor');
-    ConnectionHandler.insertEdgeBefore(conn, newEdge);
+    ConnectionHandler.insertEdgeBefore(notificationsConn, newEdge);
   }
 };
 
@@ -197,6 +200,8 @@ const notificationHandler = {
     addNotificationUpdater(store, viewerId, payload);
   },
   [PROJECT_INVOLVES]: (payload, {dispatch, history, environment, store}) => {
+    const {viewerId} = environment;
+    addNotificationUpdater(store, viewerId, payload);
     const inMeeting = Boolean(matchPath(location.pathname, {
       path: '/meeting',
       exact: false,
@@ -205,7 +210,6 @@ const notificationHandler = {
     if (inMeeting) {
       return;
     }
-    const {viewerId} = environment;
     const involvement = payload.getValue('involvement');
     const changeAuthorName = payload.getLinkedRecord('changeAuthor').getValue('preferredName');
     const wording = involvement === MENTIONEE ? 'mentioned you in' : 'assigned you to';
@@ -221,7 +225,6 @@ const notificationHandler = {
         }
       }
     }));
-    addNotificationUpdater(store, viewerId, payload);
   },
   [PROMOTE_TO_BILLING_LEADER]: (payload, {dispatch, history, environment, store}) => {
     const {viewerId} = environment;

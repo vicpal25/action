@@ -1,5 +1,8 @@
+// @flow
 import {GraphQLEnumType} from 'graphql';
 import {MEETING, TEAM_DASH, USER_DASH} from 'universal/utils/constants';
+
+export type AreaEnumT = MEETING | TEAM_DASH | USER_DASH;
 
 const AreaEnum = new GraphQLEnumType({
   name: 'AreaEnum',
