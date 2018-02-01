@@ -197,8 +197,9 @@ const styleThunk = () => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    minHeight: '5rem',
-    maxHeight: '15rem',
+    // minHeight: '5rem',
+    // maxHeight: '15rem',
+    maxHeight: 'calc(100% - 3.625rem)',
     width: '100%'
   },
 
