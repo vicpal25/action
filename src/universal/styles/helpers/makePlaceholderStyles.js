@@ -4,7 +4,7 @@ export default function makePlaceholderStyles(color) {
     '::-webkit-input-placeholder': {color},
 
     // Firefox 19+
-    '::-moz-placeholder': {color},
+    // '::-moz-placeholder': {color},
 
     // IE 10+
     ':-ms-input-placeholder': {color},
