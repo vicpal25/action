@@ -7,6 +7,7 @@
 // $FlowFixMe
 import {ContentState} from 'draft-js';
 import React from 'react';
+import shortid from 'shortid';
 import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
@@ -16,12 +17,15 @@ import Grid from './components/Grid';
 import RetroBackground from './components/RetroBackground';
 import StoryContainer from './components/StoryContainer';
 
+const newReflectionId = () => shortid.generate();
+
 storiesOf('ReflectionCard', module)
   .add('with no contents', () => (
     <RetroBackground>
       <StoryContainer
         render={() => (
           <ReflectionCard
+            id={newReflectionId()}
             contentState={ContentState.createFromText('')}
             handleDelete={action('handle-delete')}
             handleSave={action('handle-save')}
@@ -36,6 +40,7 @@ storiesOf('ReflectionCard', module)
       <StoryContainer
         render={() => (
           <ReflectionCard
+            id={newReflectionId()}
             contentState={ContentState.createFromText('One line of text.')}
             handleDelete={action('handle-delete')}
             handleSave={action('handle-save')}
@@ -50,6 +55,7 @@ storiesOf('ReflectionCard', module)
       <StoryContainer
         render={() => (
           <ReflectionCard
+            id={newReflectionId()}
             contentState={
               ContentState.createFromText(
                 'This is a long observation. ' +
@@ -73,6 +79,7 @@ storiesOf('ReflectionCard', module)
       <StoryContainer
         render={() => (
           <ReflectionCard
+            id={newReflectionId()}
             contentState={ContentState.createFromText('I cannot be edited or removed!')}
           />
         )}
@@ -87,6 +94,7 @@ storiesOf('ReflectionCard', module)
           <Grid>
             {[undefined, 'positive', 'negative', 'change'].map((stage) => (
               <ReflectionCard
+                id={newReflectionId()}
                 contentState={ContentState.createFromText('Edit me!')}
                 handleDelete={action('handle-delete')}
                 handleSave={action('handle-save')}
@@ -113,20 +121,44 @@ storiesOf('ReflectionCard', module)
             <ReflectionCard
               contentState={ContentState.createFromText('Holding the original place for me as I drag')}
               iAmDragging
+              id={newReflectionId()}
               userDragging="Dan"
             />
             <ReflectionCard
               contentState={ContentState.createFromText('Holding the original place for another user as they drag')}
+              id={newReflectionId()}
               userDragging="Terry"
             />
             <ReflectionCard
               contentState={ContentState.createFromText('Pulled under the mouse')}
+              id={newReflectionId()}
               pulled
               userDragging="Dan"
             />
             <ReflectionCard
+              id={newReflectionId()}
               contentState={ContentState.createFromText('Hovered over by another card')}
               hovered
+            />
+          </Grid>
+        )}
+      />
+    </RetroBackground>
+  ))
+
+  .add('drag and drop', () => (
+    <RetroBackground>
+      <StoryContainer
+        description="Play around with drag-and-drop"
+        render={() => (
+          <Grid>
+            <ReflectionCard
+              id={newReflectionId()}
+              contentState={ContentState.createFromText('My pithy reflection is to be heard')}
+            />
+            <ReflectionCard
+              id={newReflectionId()}
+              contentState={ContentState.createFromText('No, MY reflection shall be heard loudest!!!')}
             />
           </Grid>
         )}

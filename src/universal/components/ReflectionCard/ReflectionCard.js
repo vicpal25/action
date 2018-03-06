@@ -1,5 +1,5 @@
 /**
- * Renders a fully visible retrospective reflection card.
+ * The reflection card presentational component.
  *
  * @flow
  */
@@ -17,7 +17,7 @@ import ReflectionCardDeleteButton from './ReflectionCardDeleteButton';
 
 type Stage = 'positive' | 'negative' | 'change';
 
-type Props = {
+export type Props = {
   // The draft-js content for this card
   contentState: ContentState,
   // The action to take when this card is deleted
@@ -28,8 +28,11 @@ type Props = {
   hovered?: boolean,
   // True when the current user is the one dragging this card
   iAmDragging?: boolean,
-  // If the `userDragging` prop is provided, this states whether it serves as
-  // the under-the-mouse dragged card, or the sitting-where-it-came-from card.
+  // The unique ID of this reflection card
+  id: string,
+  // Provided by react-dnd
+  isDragging?: boolean,
+  // States whether it serves as a drag preview.
   pulled?: boolean,
   // The stage of the meeting this was created during
   stage?: Stage,
