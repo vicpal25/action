@@ -6,12 +6,13 @@
 
 // $FlowFixMe
 import {ContentState} from 'draft-js';
-import React from 'react';
+import React, {Component} from 'react';
 import shortid from 'shortid';
 import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
 import ReflectionCard from 'universal/components/ReflectionCard/ReflectionCard';
+import DraggableReflectionCard from 'universal/components/ReflectionCard/DraggableReflectionCard';
 
 import Grid from './components/Grid';
 import RetroBackground from './components/RetroBackground';
@@ -147,21 +148,57 @@ storiesOf('ReflectionCard', module)
   ))
 
   .add('drag and drop', () => (
-    <RetroBackground>
-      <StoryContainer
-        description="Play around with drag-and-drop"
-        render={() => (
-          <Grid>
-            <ReflectionCard
-              id={newReflectionId()}
-              contentState={ContentState.createFromText('My pithy reflection is to be heard')}
-            />
-            <ReflectionCard
-              id={newReflectionId()}
-              contentState={ContentState.createFromText('No, MY reflection shall be heard loudest!!!')}
-            />
-          </Grid>
-        )}
-      />
-    </RetroBackground>
+    <DragAndDropStory />
   ));
+
+type DragAndDropStoryState = {
+  card1: boolean,
+  card2: boolean
+};
+
+class DragAndDropStory extends Component<*, DragAndDropStoryState> {
+  state = {
+    card1: false,
+    card2: false
+  };
+
+  handleBeginDrag = (cardId: 'card1' | 'card2') => {
+    this.setState({[cardId]: true});
+  };
+
+  handleEndDrag = (cardId: 'card1' | 'card2') => {
+    this.setState({[cardId]: false});
+  };
+
+  render() {
+    const card1DragState = this.state.card1;
+    const card2DragState = this.state.card2;
+    return (
+      <RetroBackground>
+        <StoryContainer
+          description="Play around with drag-and-drop"
+          render={() => (
+            <Grid>
+              <DraggableReflectionCard
+                handleBeginDrag={this.handleBeginDrag}
+                handleEndDrag={this.handleEndDrag}
+                id={'card1'}
+                iAmDragging={card1DragState}
+                contentState={ContentState.createFromText('My pithy reflection is to be heard')}
+                userDragging={card1DragState && 'Dan'}
+              />
+              <DraggableReflectionCard
+                handleBeginDrag={this.handleBeginDrag}
+                handleEndDrag={this.handleEndDrag}
+                iAmDragging={card2DragState}
+                id={'card2'}
+                contentState={ContentState.createFromText('No, MY reflection shall be heard loudest!!!')}
+                userDragging={card2DragState && 'Dan'}
+              />
+            </Grid>
+          )}
+        />
+      </RetroBackground>
+    );
+  }
+}

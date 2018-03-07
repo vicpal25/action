@@ -17,7 +17,7 @@ import ReflectionCardDeleteButton from './ReflectionCardDeleteButton';
 
 type Stage = 'positive' | 'negative' | 'change';
 
-export type Props = {
+export type Props = {|
   // The draft-js content for this card
   contentState: ContentState,
   // The action to take when this card is deleted
@@ -38,7 +38,7 @@ export type Props = {
   stage?: Stage,
   // The name of the user who is currently dragging this card to a new place, if any
   userDragging?: string,
-};
+|};
 
 type State = {
   editorState: EditorState,
@@ -139,12 +139,12 @@ export default class ReflectionCard extends Component<Props, State> {
   };
 
   maybeRenderUserDragging = () => {
-    const {pulled, userDragging} = this.props;
+    const {isDragging, pulled, userDragging} = this.props;
     const styles = {
       color: appTheme.palette.warm,
       textAlign: 'end'
     };
-    return (userDragging && !pulled) && (
+    return (isDragging && !pulled) && (
       <div className={css(styles)}>
         {userDragging}
       </div>
